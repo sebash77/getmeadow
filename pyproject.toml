@@ -20,3 +20,12 @@ build-backend = "uv_build"
 dev = [
     "pytest>=9.1.1",
 ]
+
+[project.urls]
+
+Homepage = "https://github.com/sebash77/getmeadow"
+
+Repository = "https://github.com/sebash77/getmeadow"
+
+Issues = "https://github.com/sebash77/getmeadow/issues"
+
