@@ -22,8 +22,6 @@ Organization handling works similarly to the Meadow web application.
 API URLs are generated using the client instance's current organization ID. Calling `client.change_org_by_name` changes the active organization to the organization matching the provided name.
 Organization data is available through the roles attribute:
 
-Organization data can be found in the `roles` attribute 
-
 `client.roles['organizations']`
 
 Most API methods, such as get_orders() and create_user(), operate on the currently selected organization.
