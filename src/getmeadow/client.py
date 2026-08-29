@@ -73,10 +73,8 @@ class MeadowClient(httpx.Client):
 
 
     @handle_disconnect
-    def post(self, *args, **kwargs) -> tuple[int, dict]:
+    def post(self, *args, **kwargs) -> tuple[int, dict|list]:
         s, r = MeadowClient._get_result_from_response(super().post(*args, **kwargs))
-        if not isinstance(r, dict):
-            raise ResponseParseException("Expected `dict` instance in response")
         return s, r
 
     @handle_disconnect

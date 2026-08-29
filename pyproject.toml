@@ -1,6 +1,6 @@
 [project]
 name = "getmeadow"
-version = "1.0.0"
+version = "1.0.2"
 description = "Python client for the getmeadow api"
 readme = "README.md"
 authors = [
@@ -22,10 +22,7 @@ dev = [
 ]
 
 [project.urls]
-
 Homepage = "https://github.com/sebash77/getmeadow"
-
 Repository = "https://github.com/sebash77/getmeadow"
-
 Issues = "https://github.com/sebash77/getmeadow/issues"
 
