@@ -23,6 +23,5 @@ class InvalidRequestException(Exception):
 class ConnectionException(Exception):
     pass
 
-
 class ResponseParseException(Exception):
     pass

@@ -56,3 +56,29 @@ def test_create_order():
 
     s, r = client.cancel_order(r['id'], "draft order test")
     assert s == 200, "Unable to cancel draft order"
+
+
+def test_get_delivery_zones():
+    client = MeadowClient(
+        username=os.getenv("MEADOW_USERNAME"),
+        password=os.getenv("MEADOW_PASSWORD")
+    )
+
+    address = {
+        'street1': '3414 25th St #17',
+        'city': 'San Fransisco',
+        'state': 'California',
+        'postalCode': '94110',
+        'county': None
+    }
+
+    lat_lng = {
+        'lat': 37.751652,
+        'lng': -122.417409,
+    }
+
+    s, r = client.check_delivery_zone_address(address=address)
+    assert s == 200, "Unable to check delivery zone by address"
+
+    s, r = client.check_delivery_zone_address(lat_and_lng=lat_lng)
+    assert s == 200, "Unable to check delivery zone by lat/lng"

@@ -14,7 +14,7 @@ from .endpoints import (
 from .schemas import (
     Order, NewUser, AWSDocumentRequest, MeadowNewDocument, Product,
     Option, Reconciliation, UpdatePurchaseOrderLineItem,
-    ReceiveLineItem, CreatePurchaseOrderLineItem
+    ReceiveLineItem, CreatePurchaseOrderLineItem, Address, LatLng
 )
 from .exceptions import (
     CreateUserException, CreateIDException, AuthenticationException, InvalidRequestException, ConnectionException,
@@ -73,7 +73,7 @@ class MeadowClient(httpx.Client):
 
 
     @handle_disconnect
-    def post(self, *args, **kwargs) -> tuple[int, dict|list]:
+    def post(self, *args, **kwargs) -> tuple[int, dict|list|bytes]:
         s, r = MeadowClient._get_result_from_response(super().post(*args, **kwargs))
         return s, r
 
@@ -128,7 +128,10 @@ class MeadowClient(httpx.Client):
         :param name: name of the brand
         :return: status code and response data
         """
-        return self.post(MeadowEndpoints.brands.format(org_id=self.org_id), json={"name": name})
+        s, r = self.post(MeadowEndpoints.brands.format(org_id=self.org_id), json={"name": name})
+        if not isinstance(r, dict):
+            raise ResponseParseException("Expected `dict` instance in response")
+        return s, r
 
     def get_users(self, starting_after_id=None, user_type="adult-use"):
         params = {"type": user_type}
@@ -232,7 +235,7 @@ class MeadowClient(httpx.Client):
     def get_iam_data(self) -> tuple[int, dict]:
         _, user_data = self.get_my_user_data()
         _, roles = self.get_roles()
-        return self.post(IamIntercomEndpoints.web_ping,
+        s, r = self.post(IamIntercomEndpoints.web_ping,
                          data={
                              "app_id": "",
                              "platform": "web",
@@ -251,6 +254,9 @@ class MeadowClient(httpx.Client):
                              "sampling": "false",
                              "referer": "https://admin.getmeadow.com/",
                          })
+        if not isinstance(r, dict):
+            raise ResponseParseException("Expected `dict` instance in response")
+        return s, r
 
     def get_orders(
             self,
@@ -287,10 +293,13 @@ class MeadowClient(httpx.Client):
 
 
     def create_product_category(self, name: str, cannabis_type: str) -> tuple[int, dict]:
-        return self.post(
+        s, r = self.post(
             MeadowEndpoints.product_categories.format(org_id=self.org_id),
             json={"name": name, "cannabisType": cannabis_type},
         )
+        if not isinstance(r, dict):
+            raise ResponseParseException("Expected `dict` instance in response")
+        return s, r
 
     def create_vendor(
             self,
@@ -317,13 +326,19 @@ class MeadowClient(httpx.Client):
         }
         if street2:
             payload['street2'] = street2
-        return self.post(MeadowEndpoints.vendors.format(org_id=self.org_id), json=payload)
+        s, r = self.post(MeadowEndpoints.vendors.format(org_id=self.org_id), json=payload)
+        if not isinstance(r, dict):
+            raise ResponseParseException("Expected `dict` instance in response")
+        return s, r
 
 
     def create_product(self, product: dict | Product) -> tuple[int, dict]:
         if isinstance(product, dict):
             product = Product(**product)
-        return self.post(MeadowEndpoints.products.format(org_id=self.org_id), json=product.model_dump(by_alias=True))
+        s, r = self.post(MeadowEndpoints.products.format(org_id=self.org_id), json=product.model_dump(by_alias=True))
+        if not isinstance(r, dict):
+            raise ResponseParseException("Expected `dict` instance in response")
+        return s, r
 
     def create_purchase_order(
             self,
@@ -348,9 +363,12 @@ class MeadowClient(httpx.Client):
             "shippingHandlingFeeExcise": shipping_handling_fee_excise,
             "lineItems": line_items
         }
-        return self.post(
+        s, r = self.post(
             MeadowEndpoints.purchase_orders.format(org_id=self.org_id), json=payload
         )
+        if not isinstance(r, dict):
+            raise ResponseParseException("Expected `dict` instance in response")
+        return s, r
 
     def update_purchase_order(
             self,
@@ -399,9 +417,12 @@ class MeadowClient(httpx.Client):
             "lineItems": line_items
         }
 
-        return self.post(
+        s, r = self.post(
             MeadowEndpoints.purchase_order_receive.format(org_id=self.org_id, po_id=po_id), json=payload
         )
+        if not isinstance(r, dict):
+            raise ResponseParseException("Expected `dict` instance in response")
+        return s, r
 
     def update_purchase_order_status(self, po_id: int, status: str):
         payload = {"status": status}
@@ -412,7 +433,10 @@ class MeadowClient(httpx.Client):
         return self.post(MeadowEndpoints.purchase_order_payment.format(org_id=self.org_id, po_id=po_id), json=payload)
 
     def metrc_refresh(self) -> tuple[int, dict]:
-        return self.post(MeadowEndpoints.metrc_compliance_transfer_sync.format(org_id=self.org_id))
+        s, r = self.post(MeadowEndpoints.metrc_compliance_transfer_sync.format(org_id=self.org_id))
+        if not isinstance(r, dict):
+            raise ResponseParseException("Expected `dict` instance in response")
+        return s, r
 
 
     def change_org_by_name(self, name: str):
@@ -508,6 +532,8 @@ class MeadowClient(httpx.Client):
                 )
                 if status_code != 201:
                     raise CreateIDException(str(meadow_post))
+                elif not isinstance(meadow_post, dict):
+                    raise ResponseParseException("Expected `dict` instance in response")
                 return status_code, meadow_post
             except (ConnectionAbortedError, RemoteDisconnected) as e:
                 time.sleep(3)
@@ -528,11 +554,25 @@ class MeadowClient(httpx.Client):
         encoded_query = quote(query, safe="")
         return self.get(MeadowEndpoints.user_search.format(org_id=self.org_id) + f"?query={encoded_query}")
 
-    def check_delivery_zone_address(self, address=None, lat_and_lng=None):
-        payload = {"address": address}
-        if lat_and_lng:
-            payload = {"latLng": lat_and_lng}
+    def check_delivery_zone_address(
+            self,
+            address: Optional[dict | Address] = None,
+            lat_and_lng: Optional[dict | LatLng] = None
+    ):
+        if isinstance(address, dict):
+            address = Address(**address)
+        if isinstance(lat_and_lng, dict):
+            lat_and_lng = LatLng(**lat_and_lng)
+
+        if address is not None:
+            payload = {"address": address.model_dump(by_alias=True)}
+        elif lat_and_lng is not None:
+            payload = {"latLng": lat_and_lng.model_dump(by_alias=True)}
+        else:
+            raise InvalidRequestException("Must provide address or lat_and_lng")
         s, r = self.post(MeadowEndpoints.delivery_zone_addresses.format(org_id=self.org_id), json=payload)
+        if not isinstance(r, list):
+            raise ResponseParseException("Expected a `list` from this endpoint")
         return s, r
 
     def post_pricing(

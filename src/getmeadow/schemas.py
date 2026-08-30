@@ -41,7 +41,11 @@ class Address(BaseModel):
     city: str
     state: str
     postal_code: str = Field(..., alias="postalCode")
-    county: Optional[str]
+    county: Optional[str] = None
+
+class LatLng(BaseModel):
+    lat: float
+    lng: float
 
 
 class Order(BaseModel):
