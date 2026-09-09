@@ -32,7 +32,7 @@ def test_create_order():
         username=os.getenv("MEADOW_USERNAME"),
         password=os.getenv("MEADOW_PASSWORD")
     )
-    u = random.choice(client.get_users()[1])
+    u = random.choice(client.get_customers()[1])
     l = random.choice(client.get_inventory())
     o = random.choice(l['options'])
     p = random.choice(client.get_full()[1]['paymentTypes'])

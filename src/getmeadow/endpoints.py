@@ -38,6 +38,9 @@ class MeadowEndpoints:
     compliance_transfers = "https://api.getmeadow.com/organizations/{org_id}/compliance-transfers"
     compliance_transfer = "https://api.getmeadow.com/organizations/{org_id}/compliance-transfers/{compliance_transfer_id}"
     packages = "https://api.getmeadow.com/organizations/{org_id}/packages"
+    customer_groups = "https://api.getmeadow.com/organizations/{org_id}/customer-groups/"
+    customer_group_users = "https://api.getmeadow.com/organizations/{org_id}/customer-groups/{group_id}/users"
+    customer_group_user = "https://api.getmeadow.com/organizations/{org_id}/customer-groups/{group_id}/users/{user_id}"
 
 
 class IamIntercomEndpoints:

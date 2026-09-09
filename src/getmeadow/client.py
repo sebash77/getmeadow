@@ -133,11 +133,19 @@ class MeadowClient(httpx.Client):
             raise ResponseParseException("Expected `dict` instance in response")
         return s, r
 
-    def get_users(self, starting_after_id=None, user_type="adult-use"):
+    def get_customers(
+            self,
+            starting_after_id=None,
+            user_type: Literal['adult-use', 'medical', 'banned'] = "adult-use"
+    ):
         params = {"type": user_type}
         if starting_after_id is not None:
             params['startingAfterId'] = starting_after_id
         return self.get(MeadowEndpoints.users.format(org_id=self.org_id), params=params)
+
+    # def get_users(self):
+    #     print(self)
+    #     pass
 
 
     def get_brands(self) -> tuple[int, list]:
@@ -262,8 +270,10 @@ class MeadowClient(httpx.Client):
             self,
             status: Literal["draft", "new", "packed", "fulfilled", "canceled", "all"] = "new"
     ) -> tuple[int, list]:
-
-        s, r = self.get(MeadowEndpoints.orders.format(org_id=self.org_id), params={"status": status})
+        params = {}
+        if status != "all":
+            params['status'] = status
+        s, r = self.get(MeadowEndpoints.orders.format(org_id=self.org_id), params=params)
         if not isinstance(r, list):
             raise ResponseParseException("Expected `list` instance in response")
         return s, r
@@ -550,6 +560,12 @@ class MeadowClient(httpx.Client):
         }
         return self.put(MeadowEndpoints.users.format(org_id=self.org_id) + f"/{user_id}", json=payload)
 
+    def get_customer_groups(self) -> tuple[int, list[dict]]:
+        return self.get(MeadowEndpoints.customer_groups.format(org_id=self.org_id))
+
+    def get_customer_group_users(self, group_id: int) -> tuple[int, list[dict]]:
+        return self.get(MeadowEndpoints.customer_group_users.format(org_id=self.org_id, group_id=group_id))
+
     def search_users(self, query):
         encoded_query = quote(query, safe="")
         return self.get(MeadowEndpoints.user_search.format(org_id=self.org_id) + f"?query={encoded_query}")
@@ -648,7 +664,7 @@ class MeadowClient(httpx.Client):
     def get_discounts(self):
         return self.get(MeadowEndpoints.discounts.format(org_id=self.org_id))
 
-    def get_product(self, product_id):
+    def get_product(self, product_id) -> dict:
         return self.get(MeadowEndpoints.product.format(org_id=self.org_id, product_id=product_id))
 
 
