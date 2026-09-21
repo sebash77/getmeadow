@@ -156,8 +156,8 @@ class ReceiveLineItem(BaseModel):
     cbdMg: Optional[str] = Field(None, alias="cbdMg")
     producerName: str = Field(..., alias="producerName")
     producerLicense: str = Field(..., alias="producerLicense")
-    harvestDate: str = Field(..., alias="harvestDate")
-    harvestFacilityName: str = Field(..., alias="harvestFacilityName")
+    harvestDate: Optional[str] = Field(None, alias="harvestDate")
+    harvestFacilityName: Optional[str] = Field(None, alias="harvestFacilityName")
     itemStrain: Optional[str] = Field(..., alias="itemStrain")
     labName: Optional[str] = Field(None, alias="labName")
     labDate: Optional[str] = Field(None, alias="labDate")
@@ -186,3 +186,9 @@ class UpdatePurchaseOrderLineItem(BaseModel):
     ca_excise_override: Optional[bool] = Field(False, alias="caExciseOverride")
     tmp_id: Optional[str] = Field(None, alias="tmpId")
     compliance_item_name: Optional[str] = Field(None, alias="complianceItemName")
+
+
+class Insight(BaseModel):
+    labels: list[str]
+    datasets: list[dict]
+    query_totals: dict = Field(..., alias="queryTotals")

@@ -82,3 +82,17 @@ def test_get_delivery_zones():
 
     s, r = client.check_delivery_zone_address(lat_and_lng=lat_lng)
     assert s == 200, "Unable to check delivery zone by lat/lng"
+
+
+def test_insights():
+    client = MeadowClient(
+        username=os.getenv("MEADOW_USERNAME"),
+        password=os.getenv("MEADOW_PASSWORD")
+    )
+    start_date = "2026-08-01"
+    end_date = "2026-09-20"
+    s1, customer_insights = client.customer_insights(start_date=start_date, end_date=end_date)
+    s2, product_insights = client.product_insights(start_date, end_date)
+    s3, sales_insights = client.sales_insights(start_date, end_date)
+
+    assert all(map(lambda s: s == 200, [s1, s2, s3])), "Unable to retrieve insights"

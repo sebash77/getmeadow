@@ -14,7 +14,7 @@ from .endpoints import (
 from .schemas import (
     Order, NewUser, AWSDocumentRequest, MeadowNewDocument, Product,
     Option, Reconciliation, UpdatePurchaseOrderLineItem,
-    ReceiveLineItem, CreatePurchaseOrderLineItem, Address, LatLng
+    ReceiveLineItem, CreatePurchaseOrderLineItem, Address, LatLng, Insight
 )
 from .exceptions import (
     CreateUserException, CreateIDException, AuthenticationException, InvalidRequestException, ConnectionException,
@@ -277,6 +277,67 @@ class MeadowClient(httpx.Client):
         if not isinstance(r, list):
             raise ResponseParseException("Expected `list` instance in response")
         return s, r
+
+    def sales_insights(
+            self,
+            start_date: str,
+            end_date: str,
+            interval: Literal['day', 'week', 'month'] = "day",
+            sort_by: str = "sumNetPrice",
+            sort_order: str = "desc",
+            pivot: Optional[Literal['type', 'source', 'paymentType']] = None
+    ) -> tuple[int, dict]:
+        params = {
+            "startDate": start_date,
+            "endDate": end_date,
+            "interval": interval,
+            "sortBy": sort_by,
+            "sortOrder": sort_order,
+            "pivot": pivot
+        }
+        s, r = self.get(MeadowEndpoints.sales_insights.format(org_id=self.org_id), params=params)
+        return s, Insight(**r).model_dump(by_alias=True)
+
+    def product_insights(
+            self,
+            start_date: str,
+            end_date: str,
+            interval: Literal['day', 'week', 'month'] = "day",
+            sort_by: str = "sumFinalPrice",
+            sort_order: str = "desc",
+            pivot: Optional[Literal['brand', 'product', 'category', 'productOption']] = None
+    ) -> tuple[int, dict]:
+        params = {
+            "startDate": start_date,
+            "endDate": end_date,
+            "interval": interval,
+            "sortBy": sort_by,
+            "sortOrder": sort_order,
+            "pivot": pivot
+        }
+        s, r = self.get(MeadowEndpoints.product_insights.format(org_id=self.org_id), params=params)
+        return s, Insight(**r).model_dump(by_alias=True)
+
+    def customer_insights(
+            self,
+            start_date: str,
+            end_date: str,
+            interval: Literal['day', 'week', 'month'] = "day",
+            sort_by: str = "sumNetPrice",
+            sort_order: str = "desc",
+            pivot: Optional[Literal['isReturningCustomer', 'referralSource', 'age']] = None
+    ) -> tuple[int, dict]:
+        params = {
+            "startDate": start_date,
+            "endDate": end_date,
+            "interval": interval,
+            "sortBy": sort_by,
+            "sortOrder": sort_order,
+            "pivot": pivot
+        }
+        s, r = self.get(MeadowEndpoints.customer_insights.format(org_id=self.org_id), params=params)
+        return s, Insight(**r).model_dump(by_alias=True)
+
 
     def get_order(self, order_id: int) -> tuple[int, dict]:
         s, r = self.get(MeadowEndpoints.orders.format(org_id=self.org_id) + "/" + str(order_id))

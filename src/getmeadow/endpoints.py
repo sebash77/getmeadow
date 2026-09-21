@@ -41,6 +41,10 @@ class MeadowEndpoints:
     customer_groups = "https://api.getmeadow.com/organizations/{org_id}/customer-groups/"
     customer_group_users = "https://api.getmeadow.com/organizations/{org_id}/customer-groups/{group_id}/users"
     customer_group_user = "https://api.getmeadow.com/organizations/{org_id}/customer-groups/{group_id}/users/{user_id}"
+    insights = "https://api.getmeadow.com/organizations/{org_id}/insights/v2/"
+    product_insights = insights + "products"
+    sales_insights = insights + "orders"
+    customer_insights = insights + "demographics"
 
 
 class IamIntercomEndpoints:
