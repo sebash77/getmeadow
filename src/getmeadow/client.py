@@ -28,13 +28,14 @@ def handle_disconnect(func):
     def wrapper(*args, **kwargs):
         for attempt in range(5):
             try:
-                return func(*args, **kwargs)
-
+                r = func(*args, **kwargs)
+                if r.status_code == 429 or r.status_code >= 500:
+                    continue
             except httpx.TransportError as e:
                 print(f"HTTP error ({attempt + 1}/5): {e}")
 
-                if attempt < 4:
-                    time.sleep(0.25)
+            if attempt < 4:
+                time.sleep(0.25)
 
         raise ConnectionException("Unable to maintain connection to API")
 
@@ -325,7 +326,7 @@ class MeadowClient(httpx.Client):
             interval: Literal['day', 'week', 'month'] = "day",
             sort_by: str = "sumNetPrice",
             sort_order: str = "desc",
-            pivot: Optional[Literal['isReturningCustomer', 'referralSource', 'age']] = None
+            pivot: Optional[Literal['isReturningCustomer', 'sex', 'referralSource', 'age']] = None
     ) -> tuple[int, dict]:
         params = {
             "startDate": start_date,

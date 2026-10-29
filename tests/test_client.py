@@ -96,3 +96,10 @@ def test_insights():
     s3, sales_insights = client.sales_insights(start_date, end_date)
 
     assert all(map(lambda s: s == 200, [s1, s2, s3])), "Unable to retrieve insights"
+
+def test_get_users():
+    client = MeadowClient(
+        username=os.getenv("MEADOW_USERNAME"),
+        password=os.getenv("MEADOW_PASSWORD")
+    )
+    s, r  = client.get_customers(user_type='medical')
