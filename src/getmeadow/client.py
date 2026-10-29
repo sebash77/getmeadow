@@ -28,8 +28,8 @@ def handle_disconnect(func):
     def wrapper(*args, **kwargs):
         for attempt in range(5):
             try:
-                r = func(*args, **kwargs)
-                if r.status_code == 429 or r.status_code >= 500:
+                s, r = func(*args, **kwargs)
+                if s == 429 or s >= 500:
                     continue
             except httpx.TransportError as e:
                 print(f"HTTP error ({attempt + 1}/5): {e}")
