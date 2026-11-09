@@ -1,5 +1,5 @@
 from typing import List, Optional, Any, Dict, Literal
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class AWSDocumentRequest(BaseModel):
@@ -46,6 +46,39 @@ class Address(BaseModel):
 class LatLng(BaseModel):
     lat: float
     lng: float
+
+
+class OrderLineItemAPI(BaseModel):
+    product_option_id: int = Field(..., alias="productOptionId")
+    quantity: int
+
+class OrderCustomerAPI(BaseModel):
+    first_name: str  = Field(..., alias="firstName")
+    last_name: str = Field(..., alias="lastName")
+    email: Optional[str] = None
+    phone: Optional[str] = None
+
+    @model_validator(mode="after")
+    def check_contact(self):
+        if not self.email and not self.phone:
+            raise ValueError("At least one of email or phone is required")
+        return self
+
+
+class OrderAPI(BaseModel):
+    type: Literal["delivery", "pickup"]
+    line_items: List[OrderLineItemAPI] = Field(..., alias="lineItems")
+    customer: OrderCustomerAPI
+    idempotency_key: str = Field(..., alias="idempotencyKey")
+    address: Optional[Address] = None
+    postal_code: Optional[str] = Field(None, alias="postalCode")
+
+    @model_validator(mode="after")
+    def check_delivery_address(self):
+        if self.type == "delivery" and self.address is None:
+            raise ValueError("At least one of customer address is required for delivery")
+        return self
+
 
 
 class Order(BaseModel):

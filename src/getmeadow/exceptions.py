@@ -20,6 +20,10 @@ class AuthenticationException(Exception):
 class InvalidRequestException(Exception):
     pass
 
+class UnsupportedAPIFeatureException(InvalidRequestException):
+    """Raised when a feature is used in API key mode but is not supported by the public Meadow API."""
+    pass
+
 class ConnectionException(Exception):
     pass
 
